@@ -23,7 +23,7 @@ public class StopsController(ISender sender) : ApiController
     public async Task<IActionResult> DeleteStop(Guid userStopId, CancellationToken ct)
     {
         var userId = GetUserIdFromToken();
-        var command = new DeleteUserStopCommand(userId, userStopId);
+        var command = new DeleteUserStopCommand(userStopId, userId);
         var result = await sender.Send(command, ct);
 
         return HandleResult(result);
@@ -41,7 +41,7 @@ public class StopsController(ISender sender) : ApiController
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetStop(CancellationToken ct)
+    public async Task<IActionResult> GetUserStops(CancellationToken ct)
     {
         var userId = GetUserIdFromToken();
         var query = new GetUserStopsQuery(userId);
@@ -55,6 +55,16 @@ public class StopsController(ISender sender) : ApiController
     public async Task<IActionResult> GetDepartures(int stopId, CancellationToken ct)
     {
         var query = new GetDeparturesQuery(stopId);
+        var result = await sender.Send(query, ct);
+
+        return HandleResult(result);
+    }
+
+    [HttpGet("all")]
+    public async Task<IActionResult> GetAllStops(CancellationToken ct)
+    {
+        var userId = GetUserIdFromToken();
+        var query = new GetAllStopsQuery(userId);
         var result = await sender.Send(query, ct);
 
         return HandleResult(result);

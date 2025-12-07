@@ -25,18 +25,16 @@ const router = createRouter({
             path: '/dashboard',
             name: 'dashboard',
             component: DashboardView,
-            meta: { requiresAuth: true } // Oznaczamy trasę jako chronioną
+            meta: { requiresAuth: true }
         },
     ]
 })
 
-// Navigation Guard (Strażnik nawigacji)
-// Sprawdza przed każdym przejściem, czy użytkownik ma prawo wejść
-router.beforeEach((to, from, next) => {
+// Navigation Guard
+router.beforeEach((to, _from, next) => {
     const authStore = useAuthStore()
 
     if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-        // Jeśli trasa wymaga logowania, a nie jesteśmy zalogowani -> idź do login
         next({ name: 'login' })
     } else {
         next()

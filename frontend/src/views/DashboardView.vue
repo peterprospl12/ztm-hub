@@ -4,6 +4,7 @@ import { useAuthStore } from '../stores/auth';
 import { useZtmData, type Departure, type UserStop } from '../composables/useZtmData';
 import StopCard from '../components/StopCard.vue';
 import DepartureTable from '../components/DepartureTable.vue';
+import StopMap from '../components/StopMap.vue';
 
 const authStore = useAuthStore();
 const { userStops, currentStopName, isLoading, error, fetchUserStops, fetchDepartures, addStop, removeStop, updateStop } = useZtmData();
@@ -45,6 +46,14 @@ async function handleSelectStop(stop: UserStop) {
   loadingDepartures.value = false;
 }
 
+// Obsługa kliknięcia na marker na mapie
+function handleMapSelectStop(stopId: number) {
+  const stop = userStops.value.find(s => s.stopId === stopId);
+  if (stop) {
+    handleSelectStop(stop);
+  }
+}
+
 async function handleUpdateStop(userStopId: string, displayName: string) {
   await updateStop(userStopId, displayName);
 }
@@ -52,10 +61,10 @@ async function handleUpdateStop(userStopId: string, displayName: string) {
 
 <template>
   <div class="min-h-screen bg-gray-900 text-white p-8">
-    <div class="max-w-6xl mx-auto">
+    <div class="max-w-7xl mx-auto">
       <!-- Header -->
       <header class="flex justify-between items-center mb-8 border-b border-gray-700 pb-4">
-        <h1 class="text-3xl font-bold">Your Stops</h1>
+        <h1 class="text-3xl font-bold">ZTM Hub</h1>
         <div class="flex items-center gap-4">
           <span>Welcome, {{ authStore.userEmail }}</span>
           <button @click="authStore.logout" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm">
@@ -69,7 +78,8 @@ async function handleUpdateStop(userStopId: string, displayName: string) {
         {{ error }}
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Top row: Add Stop + Your Stops + Map -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <!-- Left column: Add stop + List -->
         <div class="lg:col-span-1 space-y-6">
           <!-- Add new stop form -->
@@ -131,28 +141,40 @@ async function handleUpdateStop(userStopId: string, displayName: string) {
           </div>
         </div>
 
-        <!-- Right column: Departures -->
+        <!-- Right column: Map (2/3 width) -->
         <div class="lg:col-span-2">
-          <div class="bg-gray-800 rounded-lg p-4 min-h-[400px]">
-            <h2 class="text-xl font-semibold mb-4">
-              Departures
-              <span v-if="selectedStop" class="text-gray-400 text-base font-normal">
-                - Stop #{{ selectedStop.stopId }}
-                <span v-if="currentStopName"> - {{ currentStopName }}</span>
-              </span>
-            </h2>
-
-            <div v-if="!selectedStop" class="text-gray-400 text-center py-8">
-              Select a stop from the list to see departures
+          <div class="bg-gray-800 rounded-lg p-4 h-full">
+            <h2 class="text-xl font-semibold mb-4">Map</h2>
+            <div class="h-[450px]">
+              <StopMap
+                :user-stops="userStops"
+                :selected-stop-id="selectedStop?.stopId"
+                @select-stop="handleMapSelectStop"
+              />
             </div>
-
-            <DepartureTable
-              v-else
-              :departures="stopDepartures"
-              :is-loading="loadingDepartures"
-            />
           </div>
         </div>
+      </div>
+
+      <!-- Bottom row: Departures (full width) -->
+      <div class="bg-gray-800 rounded-lg p-4">
+        <h2 class="text-xl font-semibold mb-4">
+          Departures
+          <span v-if="selectedStop" class="text-gray-400 text-base font-normal">
+            - Stop #{{ selectedStop.stopId }}
+            <span v-if="currentStopName"> - {{ currentStopName }}</span>
+          </span>
+        </h2>
+
+        <div v-if="!selectedStop" class="text-gray-400 text-center py-8">
+          Select a stop from the list or map to see departures
+        </div>
+
+        <DepartureTable
+          v-else
+          :departures="stopDepartures"
+          :is-loading="loadingDepartures"
+        />
       </div>
     </div>
   </div>
