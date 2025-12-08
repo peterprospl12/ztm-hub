@@ -138,7 +138,12 @@ async function handleUpdateStop(userStopId: string, displayName: string) {
 
           <!-- Stops list -->
           <div class="bg-gray-800 rounded-lg p-4">
-            <h2 class="text-xl font-semibold mb-4">Your Stops</h2>
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-xl font-semibold">Your Stops</h2>
+              <span v-if="userStops.length > 0" class="text-sm text-gray-400">
+                {{ userStops.length }} stop{{ userStops.length !== 1 ? 's' : '' }}
+              </span>
+            </div>
 
             <div v-if="isLoading && userStops.length === 0" class="text-gray-400 text-center py-4">
               Loading...
@@ -149,7 +154,7 @@ async function handleUpdateStop(userStopId: string, displayName: string) {
               <p class="text-sm mt-2">Switch to "All Stops" mode and click on a stop to add it!</p>
             </div>
 
-            <ul v-else class="space-y-2">
+            <ul v-else class="space-y-2 max-h-[450px] overflow-y-auto pr-1 custom-scrollbar">
               <StopCard
                 v-for="stop in userStops"
                 :key="stop.id"
@@ -231,3 +236,24 @@ async function handleUpdateStop(userStopId: string, displayName: string) {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Custom scrollbar for the stops list */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #374151;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #6b7280;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+</style>
