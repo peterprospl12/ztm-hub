@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, computed } from 'vue';
 import { LMap, LTileLayer, LMarker, LPopup, LIcon } from '@vue-leaflet/vue-leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { UserStop } from '../composables/useZtmData';
@@ -9,10 +9,12 @@ import apiClient from '../api/axios';
 const props = defineProps<{
   userStops: UserStop[];
   selectedStopId?: number | null;
+  mode: 'all' | 'favorites';
 }>();
 
 const emit = defineEmits<{
   selectStop: [stopId: number];
+  selectStopForAdding: [stop: { stopId: number; stopName: string }];
 }>();
 
 interface StopLocation {
@@ -20,9 +22,9 @@ interface StopLocation {
   stopName: string;
   lat: number;
   lng: number;
+  isFavorite: boolean;
 }
 
-// Format z API /api/Stops/all
 interface AllStop {
   id: number;
   name: string;
@@ -31,44 +33,43 @@ interface AllStop {
   lon: number;
 }
 
-const stopLocations = ref<StopLocation[]>([]);
+const allStopsData = ref<AllStop[]>([]);
 const mapCenter = ref<[number, number]>([54.372158, 18.638306]); // Gdańsk
 const zoom = ref(13);
 const isLoading = ref(false);
 
-async function fetchStopLocations() {
-  if (props.userStops.length === 0) {
-    stopLocations.value = [];
-    return;
-  }
+// Oblicz przystanki do wyświetlenia w zależności od trybu
+const displayedStops = computed<StopLocation[]>(() => {
+  const userStopIds = props.userStops.map(s => s.stopId);
 
+  if (props.mode === 'favorites') {
+    // Tylko ulubione przystanki
+    return allStopsData.value
+      .filter(stop => userStopIds.includes(stop.id))
+      .map(stop => ({
+        stopId: stop.id,
+        stopName: stop.name || `Stop ${stop.id}`,
+        lat: stop.lat,
+        lng: stop.lon,
+        isFavorite: true,
+      }));
+  } else {
+    // Wszystkie przystanki
+    return allStopsData.value.map(stop => ({
+      stopId: stop.id,
+      stopName: stop.name || `Stop ${stop.id}`,
+      lat: stop.lat,
+      lng: stop.lon,
+      isFavorite: userStopIds.includes(stop.id),
+    }));
+  }
+});
+
+async function fetchAllStops() {
   isLoading.value = true;
   try {
     const response = await apiClient.get('/Stops/all');
-    const allStops: AllStop[] = response.data;
-
-    // Filtruj tylko przystanki użytkownika
-    const userStopIds = props.userStops.map(s => s.stopId);
-    const locations: StopLocation[] = [];
-
-    for (const stop of allStops) {
-      if (userStopIds.includes(stop.id)) {
-        locations.push({
-          stopId: stop.id,
-          stopName: stop.name || `Stop ${stop.id}`,
-          lat: stop.lat,
-          lng: stop.lon, // API zwraca 'lon', nie 'lng'
-        });
-      }
-    }
-
-    stopLocations.value = locations;
-
-    // Wycentruj mapę na pierwszym przystanku
-    if (locations.length > 0 && locations[0]) {
-      mapCenter.value = [locations[0].lat, locations[0].lng];
-      zoom.value = 14;
-    }
+    allStopsData.value = response.data;
   } catch (e) {
     console.error('Failed to fetch stop locations:', e);
   } finally {
@@ -76,19 +77,45 @@ async function fetchStopLocations() {
   }
 }
 
-function handleMarkerClick(stopId: number) {
-  emit('selectStop', stopId);
+function handleMarkerClick(stop: StopLocation) {
+  if (props.mode === 'all' && !stop.isFavorite) {
+    // W trybie "all" - kliknięcie na nie-ulubiony przystanek = wybierz do dodania
+    emit('selectStopForAdding', { stopId: stop.stopId, stopName: stop.stopName });
+  } else {
+    // W trybie "favorites" lub kliknięcie na ulubiony = pokaż odjazdy
+    emit('selectStop', stop.stopId);
+  }
+}
+
+function getMarkerIcon(stop: StopLocation): string {
+  // Niebieski = wybrany
+  if (props.selectedStopId === stop.stopId) {
+    return 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png';
+  }
+  // Zielony = ulubiony (dodany przez użytkownika)
+  if (stop.isFavorite) {
+    return 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png';
+  }
+  // Szary = dostępny do dodania
+  return 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-grey.png';
 }
 
 const defaultIconSize: PointExpression = [25, 41];
 const defaultIconAnchor: PointExpression = [12, 41];
 
 onMounted(() => {
-  fetchStopLocations();
+  fetchAllStops();
 });
 
+// Wycentruj na ulubionych gdy się zmienią
 watch(() => props.userStops, () => {
-  fetchStopLocations();
+  if (props.mode === 'favorites' && props.userStops.length > 0) {
+    const firstFavorite = displayedStops.value[0];
+    if (firstFavorite) {
+      mapCenter.value = [firstFavorite.lat, firstFavorite.lng];
+      zoom.value = 14;
+    }
+  }
 }, { deep: true });
 </script>
 
@@ -98,8 +125,9 @@ watch(() => props.userStops, () => {
       <span class="text-white">Loading map...</span>
     </div>
 
-    <div v-if="stopLocations.length === 0 && !isLoading" class="absolute inset-0 flex items-center justify-center bg-gray-800 z-[1000]">
-      <span class="text-gray-400">Add stops to see them on the map</span>
+    <div v-if="displayedStops.length === 0 && !isLoading && mode === 'favorites'"
+         class="absolute inset-0 flex items-center justify-center bg-gray-800 z-[1000]">
+      <span class="text-gray-400">No favorite stops yet. Switch to "All Stops" to add some!</span>
     </div>
 
     <LMap
@@ -117,15 +145,13 @@ watch(() => props.userStops, () => {
       />
 
       <LMarker
-        v-for="stop in stopLocations"
+        v-for="stop in displayedStops"
         :key="stop.stopId"
         :lat-lng="[stop.lat, stop.lng] as [number, number]"
-        @click="handleMarkerClick(stop.stopId)"
+        @click="handleMarkerClick(stop)"
       >
         <LIcon
-          :icon-url="selectedStopId === stop.stopId
-            ? 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png'
-            : 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png'"
+          :icon-url="getMarkerIcon(stop)"
           :icon-size="defaultIconSize"
           :icon-anchor="defaultIconAnchor"
         />
@@ -134,10 +160,25 @@ watch(() => props.userStops, () => {
             <strong>{{ stop.stopName }}</strong>
             <br />
             <span class="text-sm text-gray-600">Stop #{{ stop.stopId }}</span>
+            <br />
+            <span v-if="stop.isFavorite" class="text-xs text-green-600 font-semibold">★ In your favorites</span>
+            <span v-else class="text-xs text-gray-500">Click to add to favorites</span>
           </div>
         </LPopup>
       </LMarker>
     </LMap>
+
+    <!-- Legend -->
+    <div class="absolute bottom-2 left-2 bg-gray-900/90 text-white text-xs p-2 rounded z-[1000]">
+      <div class="flex items-center gap-1 mb-1">
+        <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+        <span>Your stops</span>
+      </div>
+      <div v-if="mode === 'all'" class="flex items-center gap-1">
+        <span class="w-3 h-3 bg-gray-400 rounded-full"></span>
+        <span>Available stops</span>
+      </div>
+    </div>
   </div>
 </template>
 
