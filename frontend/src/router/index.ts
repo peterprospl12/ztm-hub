@@ -30,7 +30,6 @@ const router = createRouter({
     ]
 })
 
-// Navigation Guard
 router.beforeEach((to, _from, next) => {
     const authStore = useAuthStore()
 
