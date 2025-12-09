@@ -54,9 +54,13 @@ ZTM Hub is a Vite + Vue 3 single-page app backed by an ASP.NET Core Web API. It 
 - Tailwind CSS–styled UI with reusable composables, a custom directive for delay coloring, a custom plugin, and Vue-Leaflet map widgets.
 
 ## Screenshots
+### Login page
+<img width="397" height="303" alt="image" src="https://github.com/user-attachments/assets/11a2c013-bff1-437a-973c-080958652725" />
 
-Paste your captures here:
+### Dashboard
+<img width="915" height="625" alt="image" src="https://github.com/user-attachments/assets/73e1bd69-ece1-487d-966a-9a6e351c72d9" />
 
-- ![Login view](./screenshots/login.png)
-- ![Dashboard with departures](./screenshots/dashboard.png)
-- ![Map of stops](./screenshots/map.png)
+### Adding new favourite stop
+<img width="890" height="604" alt="image" src="https://github.com/user-attachments/assets/85e19fc9-ced7-4049-b193-c8df613383ef" />
+
+
