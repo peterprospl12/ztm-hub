@@ -38,7 +38,6 @@ function cancelEdit() {
     class="p-3 rounded transition"
     :class="isSelected ? 'bg-blue-600/30 border border-blue-500' : 'bg-gray-700 hover:bg-gray-600'"
   >
-    <!-- Edit mode -->
     <div v-if="isEditing" class="space-y-2">
       <input
         v-model="editingName"
@@ -58,7 +57,6 @@ function cancelEdit() {
       </div>
     </div>
 
-    <!-- Normal mode -->
     <div v-else class="flex items-center justify-between cursor-pointer" @click="emit('select', stop)">
       <div>
         <span class="font-medium">{{ stop.displayName || `Stop ${stop.stopId}` }}</span>

@@ -9,13 +9,12 @@ export const ZtmPlugin = {
             formatDelay(seconds: number | null | undefined): string {
                 if (seconds == null || seconds === 0) return 'On time';
                 if (seconds < 0) {
-                    // Ujemne = przyjazd wcześniej
                     const absSeconds = Math.abs(seconds);
                     if (absSeconds < 60) return `${absSeconds}s early`;
                     const minutes = Math.floor(absSeconds / 60);
                     return `${minutes}m early`;
                 }
-                // Dodatnie = opóźnienie
+
                 if (seconds < 60) return `+${seconds}s`;
                 const minutes = Math.floor(seconds / 60);
                 const remainingSeconds = seconds % 60;

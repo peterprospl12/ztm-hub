@@ -9,15 +9,12 @@ import StopMap from '../components/StopMap.vue';
 const authStore = useAuthStore();
 const { userStops, currentStopName, isLoading, error, fetchUserStops, fetchDepartures, addStop, removeStop, updateStop } = useZtmData();
 
-// Map mode
 const mapMode = ref<'all' | 'favorites'>('favorites');
 
-// Form state for adding stop
 const stopToAdd = ref<{ stopId: number; stopName: string } | null>(null);
 const customStopName = ref('');
 const isAddingStop = ref(false);
 
-// Selected stop for departures
 const selectedStop = ref<UserStop | null>(null);
 const stopDepartures = ref<Departure[]>([]);
 const loadingDepartures = ref(false);
@@ -26,13 +23,11 @@ onMounted(() => {
   fetchUserStops();
 });
 
-// Obsługa wyboru przystanku do dodania (z mapy w trybie "all")
 function handleSelectStopForAdding(stop: { stopId: number; stopName: string }) {
   stopToAdd.value = stop;
   customStopName.value = '';
 }
 
-// Dodaj przystanek
 async function handleAddStop() {
   if (!stopToAdd.value) return;
 
@@ -43,7 +38,6 @@ async function handleAddStop() {
   isAddingStop.value = false;
 }
 
-// Anuluj dodawanie
 function cancelAddStop() {
   stopToAdd.value = null;
   customStopName.value = '';
@@ -67,7 +61,6 @@ async function handleSelectStop(stop: UserStop) {
   loadingDepartures.value = false;
 }
 
-// Obsługa kliknięcia na marker na mapie (ulubiony przystanek)
 function handleMapSelectStop(stopId: number) {
   const stop = userStops.value.find(s => s.stopId === stopId);
   if (stop) {
@@ -83,7 +76,6 @@ async function handleUpdateStop(userStopId: string, displayName: string) {
 <template>
   <div class="min-h-screen bg-gray-900 text-white p-8">
     <div class="max-w-7xl mx-auto">
-      <!-- Header -->
       <header class="flex justify-between items-center mb-8 border-b border-gray-700 pb-4">
         <h1 class="text-3xl font-bold">ZTM Hub</h1>
         <div class="flex items-center gap-4">
@@ -94,16 +86,12 @@ async function handleUpdateStop(userStopId: string, displayName: string) {
         </div>
       </header>
 
-      <!-- Error message -->
       <div v-if="error" class="bg-red-600/20 border border-red-500 text-red-300 px-4 py-3 rounded mb-4">
         {{ error }}
       </div>
 
-      <!-- Top row: Your Stops + Map -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <!-- Left column: Your Stops + Add form -->
         <div class="lg:col-span-1 space-y-6">
-          <!-- Add Stop Panel (pokazuje się gdy wybierzemy przystanek na mapie) -->
           <div v-if="stopToAdd" class="bg-green-900/30 border border-green-600 rounded-lg p-4">
             <h2 class="text-xl font-semibold mb-3 text-green-400">Add Stop</h2>
             <div class="mb-3">
@@ -136,7 +124,6 @@ async function handleUpdateStop(userStopId: string, displayName: string) {
             </div>
           </div>
 
-          <!-- Stops list -->
           <div class="bg-gray-800 rounded-lg p-4">
             <div class="flex justify-between items-center mb-4">
               <h2 class="text-xl font-semibold">Your Stops</h2>
@@ -168,10 +155,8 @@ async function handleUpdateStop(userStopId: string, displayName: string) {
           </div>
         </div>
 
-        <!-- Right column: Map (2/3 width) -->
         <div class="lg:col-span-2">
           <div class="bg-gray-800 rounded-lg p-4 h-full">
-            <!-- Map header with mode toggle -->
             <div class="flex justify-between items-center mb-4">
               <h2 class="text-xl font-semibold">Map</h2>
               <div class="flex bg-gray-700 rounded-lg p-1">
@@ -213,7 +198,6 @@ async function handleUpdateStop(userStopId: string, displayName: string) {
         </div>
       </div>
 
-      <!-- Bottom row: Departures (full width) -->
       <div class="bg-gray-800 rounded-lg p-4">
         <h2 class="text-xl font-semibold mb-4">
           Departures
@@ -238,7 +222,6 @@ async function handleUpdateStop(userStopId: string, displayName: string) {
 </template>
 
 <style scoped>
-/* Custom scrollbar for the stops list */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }

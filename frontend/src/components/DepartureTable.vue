@@ -6,14 +6,12 @@ defineProps<{
   isLoading?: boolean;
 }>();
 
-// Formatowanie czasu z ISO do HH:MM
 function formatTime(isoTime: string): string {
   if (!isoTime) return '--:--';
   try {
     const date = new Date(isoTime);
     return date.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
   } catch {
-    // Jeśli to już jest format HH:MM
     return isoTime.substring(0, 5);
   }
 }

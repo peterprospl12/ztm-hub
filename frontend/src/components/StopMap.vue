@@ -38,12 +38,10 @@ const mapCenter = ref<[number, number]>([54.372158, 18.638306]); // Gdańsk
 const zoom = ref(13);
 const isLoading = ref(false);
 
-// Oblicz przystanki do wyświetlenia w zależności od trybu
 const displayedStops = computed<StopLocation[]>(() => {
   const userStopIds = props.userStops.map(s => s.stopId);
 
   if (props.mode === 'favorites') {
-    // Tylko ulubione przystanki
     return allStopsData.value
       .filter(stop => userStopIds.includes(stop.id))
       .map(stop => ({
@@ -79,24 +77,19 @@ async function fetchAllStops() {
 
 function handleMarkerClick(stop: StopLocation) {
   if (props.mode === 'all' && !stop.isFavorite) {
-    // W trybie "all" - kliknięcie na nie-ulubiony przystanek = wybierz do dodania
     emit('selectStopForAdding', { stopId: stop.stopId, stopName: stop.stopName });
   } else {
-    // W trybie "favorites" lub kliknięcie na ulubiony = pokaż odjazdy
     emit('selectStop', stop.stopId);
   }
 }
 
 function getMarkerIcon(stop: StopLocation): string {
-  // Niebieski = wybrany
   if (props.selectedStopId === stop.stopId) {
     return 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png';
   }
-  // Zielony = ulubiony (dodany przez użytkownika)
   if (stop.isFavorite) {
     return 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png';
   }
-  // Szary = dostępny do dodania
   return 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-grey.png';
 }
 
@@ -107,7 +100,6 @@ onMounted(() => {
   fetchAllStops();
 });
 
-// Wycentruj na ulubionych gdy się zmienią
 watch(() => props.userStops, () => {
   if (props.mode === 'favorites' && props.userStops.length > 0) {
     const firstFavorite = displayedStops.value[0];
