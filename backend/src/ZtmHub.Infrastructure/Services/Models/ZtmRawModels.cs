@@ -24,21 +24,21 @@ internal record ZtmStopsNode(
 
 internal record ZtmVehicleJson(
     [property: JsonPropertyName("routeId")]
-    int RouteId, // w JSON jest int (np. 6)
+    int RouteId,
     [property: JsonPropertyName("headsign")]
     string Headsign,
     [property: JsonPropertyName("delayInSeconds")]
     int? DelayInSeconds,
     [property: JsonPropertyName("estimatedTime")]
-    DateTime EstimatedTime, // JSON ma pełną datę, super!
+    DateTime EstimatedTime,
     [property: JsonPropertyName("theoreticalTime")]
-    DateTime TheoreticalTime, // JSON ma pełną datę
-    [property: JsonPropertyName("status")] string Status // "REALTIME"
+    DateTime TheoreticalTime,
+    [property: JsonPropertyName("status")] string Status
 );
 
 internal record ZtmDeparturesResponse(
     [property: JsonPropertyName("lastUpdate")]
     DateTime LastUpdate,
     [property: JsonPropertyName("departures")]
-    List<ZtmVehicleJson> Departures // Zmiana z 'delay' na 'departures'
+    List<ZtmVehicleJson> Departures
 );

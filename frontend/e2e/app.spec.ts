@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test';
 
-// Helper - mock JWT token
 async function mockAuth(page: any) {
     const fakeToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJleHAiOjk5OTk5OTk5OTl9.fake';
     await page.goto('/');
